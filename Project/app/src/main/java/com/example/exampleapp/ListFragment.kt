@@ -5,6 +5,16 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.exampleapp.model.KanjiObject
+import com.example.exampleapp.network.KanjiInterface
+import com.example.exampleapp.network.RetrofitLayer
+import com.example.exampleapp.recyclerview.KanjiAdapter
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -17,16 +27,32 @@ private const val ARG_PARAM2 = "param2"
  * create an instance of this fragment.
  */
 class ListFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    lateinit var recyclerView: RecyclerView
+    lateinit var list: List<KanjiObject>
+    lateinit var adapter: KanjiAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
+
+        adapter = KanjiAdapter()
+
+        val service = RetrofitLayer.getInstance().create(KanjiInterface::class.java)
+        val call = service.getAllKanji()
+        call.enqueue(object : Callback<List<KanjiObject>> {
+            override fun onFailure(call: Call<List<KanjiObject>>, t: Throwable) {
+                Toast.makeText(context, "Call Failed", Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onResponse(
+                call: Call<List<KanjiObject>>,
+                response: Response<List<KanjiObject>>
+            ) {
+                adapter.setDataSet(response.body()!!)
+                recyclerView.adapter = adapter
+                recyclerView.layoutManager = LinearLayoutManager(context)
+            }
+
+        })
     }
 
     override fun onCreateView(
@@ -34,7 +60,9 @@ class ListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_list, container, false)
+        val v = inflater.inflate(R.layout.fragment_list, container, false)
+        recyclerView = v.findViewById(R.id.rv_list)
+        return v
     }
 
     companion object {

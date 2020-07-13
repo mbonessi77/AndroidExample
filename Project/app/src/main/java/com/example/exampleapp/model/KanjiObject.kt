@@ -1,4 +1,5 @@
 package com.example.exampleapp.model
 
-class KanjiObject {
-}
+data class KanjiObject (
+    var kanji: KanjiCharacter
+)
