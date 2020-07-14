@@ -1,5 +1,6 @@
 package com.example.exampleapp.viewmodel
 
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.exampleapp.model.KanjiObject
 import com.example.exampleapp.network.KanjiInterface
@@ -9,11 +10,12 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class KanjiListViewModel : ViewModel() {
-    private var kanjiList: List<KanjiObject>? = ArrayList()
+    val kanjiList = MutableLiveData<List<KanjiObject>>()
 
-    fun getList(): List<KanjiObject>? {
+    fun getList() {
         val service = RetrofitLayer().getInstance().create(KanjiInterface::class.java)
         val call = service.getAllKanji()
+
         call.enqueue(object : Callback<List<KanjiObject>> {
             override fun onFailure(call: Call<List<KanjiObject>>, t: Throwable) {
                 print("Call failed")
@@ -21,11 +23,9 @@ class KanjiListViewModel : ViewModel() {
 
             override fun onResponse(call: Call<List<KanjiObject>>, response: Response<List<KanjiObject>>) {
                 response.body()?.let {
-                    kanjiList = response.body()
+                    kanjiList.postValue(response.body())
                 }
             }
         })
-
-        return kanjiList
     }
 }
